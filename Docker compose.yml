@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+
+  mysql:
+    image: mysql:8
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: ytdb
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./commands.sql:/docker-entrypoint-initdb.d/commands.sql
+    networks:
+      - app-network
+
+  backend:
+    image: my-flask-app
+    container_name: backend
+    restart: always
+    depends_on:
+      - mysql
+    environment:
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASSWORD: rootpassword
+      DB_NAME: ytdb
+    ports:
+      - "5000:5000"
+    networks:
+      - app-network
+
+  frontend:
+    image: my-frontend
+    container_name: frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+
+volumes:
+  mysql_data:
